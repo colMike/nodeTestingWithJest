@@ -2,6 +2,7 @@ const lib = require('../lib');
 const db = require('../db');
 const mail = require('../mail');
 
+
 describe('absolute', () => {
 
     it('should return a positive number if input is positive', () => {
@@ -108,29 +109,45 @@ describe("applyDiscount", () => {
 });
 
 
+// describe("notifyCustomer", () => {
+//
+//     it('should send a notification email to a customer', () => {
+//
+//         let customer;
+//
+//         db.getCustomerSync = function (id) {
+//             customer = {id: id, points: 11, email: 'a'};
+//             return customer;
+//         };
+//
+//         let mailSent = false;
+//
+//         mail.send = function(to, message){
+//             console.log('Sending fake email');
+//             mailSent = true;
+//         }
+//
+//         const order = {customerId: 2, totalPrice: 50};
+//
+//         lib.notifyCustomer(order);
+//
+//         expect(mailSent).toBe(true);
+//
+//     });
+// });
+
 describe("notifyCustomer", () => {
 
     it('should send a notification email to a customer', () => {
 
-        let customer;
+        db.getCustomerSync = jest.fn().mockReturnValue({email: 'a'});
+        mail.send = jest.fn();
 
-        db.getCustomerSync = function (id) {
-            customer = {id: id, points: 11, email: 'a'};
-            return customer;
-        };
+        lib.notifyCustomer({id: 5});
 
-        let mailSent = false;
-
-        mail.send = function(to, message){
-            console.log('Sending fake email');
-            mailSent = true;
-        }
-
-        const order = {customerId: 2, totalPrice: 50};
-
-        lib.notifyCustomer(order);
-
-        expect(mailSent).toBe(true);
+        expect(mail.send).toHaveBeenCalled();
+        expect(mail.send.mock.calls[0][0]).toBe('a');
+        expect(mail.send.mock.calls[0][1]).toMatch(/order/);
 
     });
 });
