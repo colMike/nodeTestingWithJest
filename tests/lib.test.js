@@ -1,4 +1,6 @@
 const lib = require('../lib');
+const db = require('../db');
+const mail = require('../mail');
 
 describe('absolute', () => {
 
@@ -84,4 +86,51 @@ describe("registerUser", () => {
         })
 
     })
+});
+
+
+describe("applyDiscount", () => {
+
+    it('Should apply a 10% discount to customers with more than 10 points', () => {
+
+        db.getCustomerSync = function (id) {
+            // console.log("Fake getCustomerSync Function");
+            return {id: id, points: 11};
+        };
+
+        const order = {customerId: 5, totalPrice: 10};
+
+        lib.applyDiscount(order);
+
+        expect(order.totalPrice).toBe(9);
+
+    })
+});
+
+
+describe("notifyCustomer", () => {
+
+    it('should send a notification email to a customer', () => {
+
+        let customer;
+
+        db.getCustomerSync = function (id) {
+            customer = {id: id, points: 11, email: 'a'};
+            return customer;
+        };
+
+        let mailSent = false;
+
+        mail.send = function(to, message){
+            console.log('Sending fake email');
+            mailSent = true;
+        }
+
+        const order = {customerId: 2, totalPrice: 50};
+
+        lib.notifyCustomer(order);
+
+        expect(mailSent).toBe(true);
+
+    });
 });
